@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <title>函数节流</title>
+</head>
+<body>
+  <div>test</div>
+  <script>
+    /** 方案一 **/
+    // window.onresize = function() {
+    //   debounce(() => { doSth() }, 1000)
+    // }
+    // let debounce = (function() {
+    //   let timer = null
+    //   return function(fn, delay = 300) {
+    //     timer && clearTimeout(timer)
+    //     timer = setTimeout(fn, delay)
+    //   }
+    // })()
+    // function doSth() {
+    //   console.log('well, some action here...')
+    // }
+
+    /** 方案二 **/
+    // window.onresize = function() {
+    //   throttle(() => { doSth() }, 1000)
+    // }
+    // let throttle = (function() {
+    //   let timer = null, prev = null, now = null
+    //   return function(fn, delay = 1000) {
+    //     now = new Date()
+    //     if(!prev) {
+    //       prev = new Date()
+    //       return
+    //     }
+    //     timer && clearTimeout(timer)
+    //     if(now - prev <= delay) {
+    //       timer = setTimeout(fn, delay)
+    //     } else {
+    //       fn()
+    //       prev = now
+    //     }
+    //   }
+    // })()
+    // function doSth() {
+    //   console.log('well, some action here...')
+    // }
+
+    /** 方案三 **/
+    class Optimistic {
+      constructor(fn, delay) {
+        this.method = this.method.bind(this)
+        this.flag = true
+        this.fn = fn
+        this.delay = delay
+        this.timer = null
+      }
+      method() {
+        if (this.flag) {
+          this.timer && clearTimeout(this.timer)
+          this.flag = false
+          this.fn()
+          this.timer = setTimeout(() => {
+            this.flag = true
+          }, this.delay)
+        }
+      }
+    }
+    const optimistic = new Optimistic(doSth, 1000).method
+    window.onresize = function() { optimistic() }
+    function doSth() {
+      console.log('well, some action here...')
+    }
+  </script>
+</body>
+</html>
