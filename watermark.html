@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <style>
+    html,body {
+      margin: 0;
+      padding: 0;
+    }
+    #container {
+      width: 100vw;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" style="display:none"></canvas>
+  <div id='container'>test</div>
+  <script>
+    let getWaterMark = (function() {
+      //声明2个全局变量
+      const $ = document.querySelector.bind(document)
+      let watermarkImage = null
+      //说明3个函数
+      function getContainerSize(canvas, containerId) {
+        const containerEle = window.getComputedStyle($(containerId))
+        canvas.width = parseInt(containerEle.width, 10)
+        canvas.height = parseInt(containerEle.height, 10)
+      }
+      function getCanvasImg(canvas, str) {
+        let ctx = canvas.getContext("2d")
+        ctx.font = "20px Helvetica"
+        ctx.fillStyle = "rgba(225, 0, 0, .5)"
+        ctx.rotate(-45 * Math.PI / 180)
+        const canvasW = canvas.width * 1.414
+        const canvasH = canvas.height * 2
+        let widthArr = [], heightArr = [], n = 0
+        while (n <= canvasW) {
+          widthArr.push(n)
+          n += canvasW * .2
+        }
+        n = 100
+        while (n <= canvasH) {
+          heightArr.push(n)
+          n += canvasH * .15
+        }
+        widthArr.forEach(function(item) {
+          heightArr.forEach(function(it) {
+            ctx.fillText(str, item, it)
+            item !== -item && ctx.fillText(str, -item, it)
+          })
+        })
+        watermarkImage = canvas.toDataURL("image/png")
+      }
+      function setWatermark(id) {
+        if (!watermarkImage) return
+        $(id).style.background = `url(${watermarkImage}) no-repeat fixed`
+      }
+      //返回调用函数
+      return function(canvasId = 'canvas', containerId = 'body', waterText = 'I am default') {
+        let canvas = $(canvasId)
+        // 动态获取容器宽高
+        getContainerSize(canvas, containerId)
+        //生成canvs图片
+        getCanvasImg(canvas, waterText)
+        // 设置canvas图片作为背景图
+        setWatermark(containerId)
+      }
+    })()
+
+    getWaterMark('#canvas', '#container', 'zhangbinglin666')
+
+    //窗口监听
+    window.onresize = function() {
+      debounce(() => { getWaterMark('#canvas', '#container', 'zhangbinglin666') })
+    }
+    //窗口大小监听需要使用防抖函数
+    let debounce = (function() {
+      let timer = null
+      return function(fn, delay = 300) {
+        clearTimeout(timer)
+        timer = setTimeout(fn, delay)
+      }
+    })()
+  </script>
+</body>
+</html>
